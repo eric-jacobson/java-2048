@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -6,6 +7,7 @@ import java.util.Scanner;
 
 public class Game {
     private int[][] gameBoard = new int[4][4];
+//    private int[][] gameBoard = {{2,4,2,4},{4,2,4,2},{2,4,2,4},{4,2,4,2}};
     private int score = 0;
 
     public void play() {
@@ -19,6 +21,7 @@ public class Game {
             String action = scanner.next();
             System.out.println(action);
 
+            // TODO: need to test if a move is possible before accepting it
             switch (action.toLowerCase()) {
                 case "w" -> {
                     rotateBoardCounterClockwise(gameBoard);
@@ -48,7 +51,6 @@ public class Game {
             fillNewCell(gameBoard);
             printBoard(gameBoard);
         }
-
     }
 
     private boolean isGameOver(int[][] gameBoard) {
@@ -57,9 +59,61 @@ public class Game {
             return true;
         }
 
-        //TODO: determine if game has reached a fail state, no possible moves
+        if (!(canMoveLeft(gameBoard) && canMoveRight(gameBoard) && canMoveUp(gameBoard) && canMoveDown(gameBoard))) {
+            System.out.println("Game over.");
+            return true;
+        }
 
         return false;
+    }
+
+    private boolean canMoveLeft(int[][] gameBoard) {
+
+        shiftCells(gameBoard);
+        mergeCells(gameBoard);
+
+        // if boards are not equal after comparison then there are possible moves left
+        return !compareBoards(gameBoard, this.gameBoard);
+    }
+
+    private boolean canMoveRight(int[][] gameBoard) {
+        reverseBoard(gameBoard);
+        shiftCells(gameBoard);
+        mergeCells(gameBoard);
+        reverseBoard(gameBoard);
+
+        // if boards are not equal after comparison then there are possible moves left
+        return !compareBoards(gameBoard, this.gameBoard);
+    }
+
+    private boolean canMoveUp(int[][] gameBoard) {
+        rotateBoardCounterClockwise(gameBoard);
+        shiftCells(gameBoard);
+        mergeCells(gameBoard);
+        rotateBoardClockwise(gameBoard);
+
+        // if boards are not equal after comparison then there are possible moves left
+        return !compareBoards(gameBoard, this.gameBoard);
+    }
+
+    private boolean canMoveDown(int[][] gameBoard) {
+        rotateBoardClockwise(gameBoard);
+        shiftCells(gameBoard);
+        mergeCells(gameBoard);
+        rotateBoardCounterClockwise(gameBoard);
+
+        // if boards are not equal after comparison then there are possible moves left
+        return !compareBoards(gameBoard, this.gameBoard);
+    }
+
+    private boolean compareBoards(int[][] gameBoard, int[][] testGameBoard) {
+        for (int i = 0; i < gameBoard.length; i++) {
+            for (int j = 0; j < gameBoard.length; j++) {
+                if (gameBoard[i][j] != testGameBoard[i][j])
+                    return false;
+            }
+        }
+        return true;
     }
 
     private void fillNewCell(int[][] gameBoard) {
@@ -73,10 +127,12 @@ public class Game {
             }
         }
 
-        // select random cell from list and add 2, enhancement add a chance to add a 4
-        Random random = new Random();
-        String[] indexes = emptyCells.get(random.nextInt(emptyCells.size())).split(",");
-        gameBoard[Integer.parseInt(indexes[0])][Integer.parseInt(indexes[1])] = 2;
+        if (!emptyCells.isEmpty()) {
+            // select random cell from list and add 2, enhancement add a chance to add a 4
+            Random random = new Random();
+            String[] indexes = emptyCells.get(random.nextInt(emptyCells.size())).split(",");
+            gameBoard[Integer.parseInt(indexes[0])][Integer.parseInt(indexes[1])] = 2;
+        }
     }
 
     private void shiftCells(int[][] gameBoard) {
